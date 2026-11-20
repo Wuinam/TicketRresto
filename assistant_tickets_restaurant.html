@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Assistant Courses & Tickets-Restaurant</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --text: #1e293b;
+      --border: #e2e8f0;
+      --success: #16a34a;
+      --danger: #dc2626;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+      line-height: 1.5;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    h1 { font-size: 1.4rem; margin: 0; }
+    .lang-switch button {
+      background: var(--card);
+      border: 1px solid var(--border);
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .lang-switch button.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+    section {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      border: 1px solid var(--border);
+    }
+    h2 {
+      font-size: 1.1rem;
+      margin-top: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .input-group {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    input {
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 1rem;
+      flex: 1;
+      min-width: 0;
+    }
+    button.btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 500;
+    }
+    button.btn-danger {
+      background: #fee2e2;
+      color: var(--danger);
+      border: none;
+      padding: 4px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+    button.btn-success {
+      background: var(--success);
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      width: 100%;
+      font-size: 1rem;
+      margin-top: 12px;
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    li:last-child { border-bottom: none; }
+    .total-badge {
+      background: #eff6ff;
+      color: var(--primary);
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-weight: 700;
+      font-size: 0.95rem;
+    }
+    .big-total {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--primary);
+      margin: 8px 0;
+    }
+    .ticket-pill {
+      display: inline-block;
+      background: #dcfce7;
+      color: #166534;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-weight: 600;
+      margin: 4px 4px 4px 0;
+    }
+    .summary-line {
+      display: flex;
+      justify-content: space-between;
+      margin: 8px 0;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1 data-i18n="title">Assistant Courses & Tickets-Restaurant</h1>
+    <div class="lang-switch">
+      <button id="btn-fr" class="active" onclick="setLang('fr')">🇫🇷 Français</button>
+      <button id="btn-zh" onclick="setLang('zh')">🇨🇳 中文</button>
+    </div>
+  </header>
+
+  <section>
+    <h2>
+      <span data-i18n="sec1Title">🎟 1. Mon portefeuille de tickets</span>
+      <span class="total-badge"><span data-i18n="walletTotalLabel">Total :</span> <span id="wallet-total">0.00</span> €</span>
+    </h2>
+    <div class="input-group">
+      <input type="number" id="ticket-val" step="0.01" min="0.1" data-i18n-placeholder="phTicketVal" placeholder="Valeur (ex: 9.50)">
+      <input type="number" id="ticket-qty" min="1" value="1" style="max-width: 70px;" data-i18n-placeholder="phQty" placeholder="Qté">
+      <button class="btn" onclick="addTicket()" data-i18n="btnAdd">Ajouter</button>
+    </div>
+    <ul id="wallet-list"></ul>
+  </section>
+
+  <section>
+    <h2>
+      <span data-i18n="sec2Title">🛒 2. Mes courses en cours</span>
+      <button class="btn-danger" onclick="clearCart()" data-i18n="btnClear">Vider</button>
+    </h2>
+    <div class="input-group">
+      <input type="text" id="item-name" data-i18n-placeholder="phItemName" placeholder="Article (optionnel)">
+      <input type="number" id="item-price" step="0.01" min="0.01" data-i18n-placeholder="phItemPrice" placeholder="Prix (€)">
+      <button class="btn" onclick="addItem()" data-i18n="btnAddPlus">+ Ajouter</button>
+    </div>
+    <ul id="cart-list"></ul>
+  </section>
+
+  <section>
+    <h2 data-i18n="sec3Title">✨ 3. Paiement optimal à la caisse</h2>
+    <div class="big-total"><span id="cart-total">0.00</span> €</div>
+    
+    <p><strong data-i18n="ticketsToGive">Tickets à donner (sans dépasser) :</strong></p>
+    <div id="optimal-tickets" style="margin-bottom: 12px; color: #64748b;" data-i18n="emptyPrompt">
+      Ajoutez des articles pour calculer
+    </div>
+
+    <div class="summary-line">
+      <span data-i18n="coveredLabel">Total couvert par tickets :</span>
+      <strong><span id="covered-amount">0.00</span> €</strong>
+    </div>
+    <div class="summary-line">
+      <span data-i18n="remainingLabel">Reste à payer (CB / Espèces) :</span>
+      <strong><span id="remaining-amount">0.00</span> €</strong>
+    </div>
+
+    <button id="checkout-btn" class="btn-success" onclick="checkout()" disabled data-i18n="btnCheckout">
+      ✅ Passer en caisse (déduire du stock)
+    </button>
+  </section>
+
+  <script>
+    const translations = {
+      fr: {
+        title: "Assistant Courses & Tickets-Restaurant",
+        sec1Title: "🎟 1. Mon portefeuille de tickets",
+        walletTotalLabel: "Total :",
+        phTicketVal: "Valeur (ex: 9.50)",
+        phQty: "Qté",
+        btnAdd: "Ajouter",
+        sec2Title: "🛒 2. Mes courses en cours",
+        btnClear: "Vider",
+        phItemName: "Article (optionnel)",
+        phItemPrice: "Prix (€)",
+        btnAddPlus: "+ Ajouter",
+        sec3Title: "✨ 3. Paiement optimal à la caisse",
+        ticketsToGive: "Tickets à donner (sans dépasser) :",
+        emptyPrompt: "Ajoutez des articles pour calculer",
+        noTicketMatch: "Aucun ticket applicable sans dépasser le montant",
+        coveredLabel: "Total couvert par tickets :",
+        remainingLabel: "Reste à payer (CB / Espèces) :",
+        btnCheckout: "✅ Passer en caisse (déduire du stock)",
+        defaultItem: "Article",
+        confirmCheckout: "Déduire ces tickets de votre portefeuille et vider le panier ?"
+      },
+      zh: {
+        title: "购物与餐券计算助手",
+        sec1Title: "🎟 1. 我的餐券钱包",
+        walletTotalLabel: "总金额：",
+        phTicketVal: "面值 (例如: 9.50)",
+        phQty: "数量",
+        btnAdd: "添加",
+        sec2Title: "🛒 2. 当前购物清单",
+        btnClear: "清空",
+        phItemName: "商品名称 (可选)",
+        phItemPrice: "价格 (€)",
+        btnAddPlus: "+ 添加",
+        sec3Title: "✨ 3. 收银台最佳支付方案",
+        ticketsToGive: "建议使用的餐券（不超过总额）：",
+        emptyPrompt: "请添加商品以进行计算",
+        noTicketMatch: "没有可使用的餐券（面值均超过总价）",
+        coveredLabel: "餐券抵扣总额：",
+        remainingLabel: "剩余需支付 (银行卡 / 现金)：",
+        btnCheckout: "✅ 结账（从库存中扣除餐券）",
+        defaultItem: "商品",
+        confirmCheckout: "确认从钱包中扣除这些餐券并清空购物车吗？"
+      }
+    };
+
+    let currentLang = localStorage.getItem('appLang') || 'fr';
+    let wallet = JSON.parse(localStorage.getItem('tr_wallet')) || [];
+    let cart = JSON.parse(localStorage.getItem('tr_cart')) || [];
+    let lastBestCombination = [];
+
+    function setLang(lang) {
+      currentLang = lang;
+      localStorage.setItem('appLang', lang);
+      document.getElementById('btn-fr').classList.toggle('active', lang === 'fr');
+      document.getElementById('btn-zh').classList.toggle('active', lang === 'zh');
+
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (translations[lang][key]) el.textContent = translations[lang][key];
+      });
+
+      document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+        const key = el.getAttribute('data-i18n-placeholder');
+        if (translations[lang][key]) el.placeholder = translations[lang][key];
+      });
+
+      render();
+    }
+
+    function saveData() {
+      localStorage.setItem('tr_wallet', JSON.stringify(wallet));
+      localStorage.setItem('tr_cart', JSON.stringify(cart));
+    }
+
+    function addTicket() {
+      const val = parseFloat(document.getElementById('ticket-val').value);
+      const qty = parseInt(document.getElementById('ticket-qty').value);
+      if (isNaN(val) || val <= 0 || isNaN(qty) || qty <= 0) return;
+
+      const existing = wallet.find(t => Math.abs(t.val - val) < 0.001);
+      if (existing) {
+        existing.qty += qty;
+      } else {
+        wallet.push({ val: Math.round(val * 100) / 100, qty });
+      }
+      wallet.sort((a, b) => b.val - a.val);
+
+      document.getElementById('ticket-val').value = '';
+      document.getElementById('ticket-qty').value = '1';
+      saveData();
+      render();
+    }
+
+    function removeTicket(index) {
+      wallet.splice(index, 1);
+      saveData();
+      render();
+    }
+
+    function addItem() {
+      const nameInput = document.getElementById('item-name').value.trim();
+      const price = parseFloat(document.getElementById('item-price').value);
+      if (isNaN(price) || price <= 0) return;
+
+      cart.push({
+        name: nameInput || `${translations[currentLang].defaultItem} #${cart.length + 1}`,
+        price: Math.round(price * 100) / 100
+      });
+
+      document.getElementById('item-name').value = '';
+      document.getElementById('item-price').value = '';
+      saveData();
+      render();
+    }
+
+    function removeItem(index) {
+      cart.splice(index, 1);
+      saveData();
+      render();
+    }
+
+    function clearCart() {
+      cart = [];
+      saveData();
+      render();
+    }
+
+    function calculateOptimal(targetCents) {
+      let available = [];
+      wallet.forEach(t => {
+        const count = Math.min(t.qty, 50);
+        for (let i = 0; i < count; i++) {
+          available.push(Math.round(t.val * 100));
+        }
+      });
+
+      let dp = new Array(targetCents + 1).fill(null);
+      dp[0] = [];
+
+      for (let ticketCents of available) {
+        for (let s = targetCents; s >= ticketCents; s--) {
+          if (dp[s - ticketCents] !== null && dp[s] === null) {
+            dp[s] = [...dp[s - ticketCents], ticketCents];
+          }
+        }
+      }
+
+      for (let s = targetCents; s >= 0; s--) {
+        if (dp[s] !== null) {
+          return { bestSumCents: s, ticketsCents: dp[s] };
+        }
+      }
+      return { bestSumCents: 0, ticketsCents: [] };
+    }
+
+    function render() {
+      const t = translations[currentLang];
+
+      const walletList = document.getElementById('wallet-list');
+      walletList.innerHTML = '';
+      let totalWalletCents = 0;
+
+      wallet.forEach((item, idx) => {
+        totalWalletCents += Math.round(item.val * 100) * item.qty;
+        const li = document.createElement('li');
+        li.innerHTML = `
+          <span><strong>${item.qty}</strong> × ${item.val.toFixed(2)} €</span>
+          <button class="btn-danger" onclick="removeTicket(${idx})">✕</button>
+        `;
+        walletList.appendChild(li);
+      });
+      document.getElementById('wallet-total').textContent = (totalWalletCents / 100).toFixed(2);
+
+      const cartList = document.getElementById('cart-list');
+      cartList.innerHTML = '';
+      let totalCartCents = 0;
+
+      cart.forEach((item, idx) => {
+        totalCartCents += Math.round(item.price * 100);
+        const li = document.createElement('li');
+        li.innerHTML = `
+          <span>${item.name}</span>
+          <span><strong>${item.price.toFixed(2)} €</strong> <button class="btn-danger" onclick="removeItem(${idx})">✕</button></span>
+        `;
+        cartList.appendChild(li);
+      });
+
+      document.getElementById('cart-total').textContent = (totalCartCents / 100).toFixed(2);
+
+      const optimalDiv = document.getElementById('optimal-tickets');
+      const checkoutBtn = document.getElementById('checkout-btn');
+
+      if (totalCartCents === 0) {
+        optimalDiv.innerHTML = t.emptyPrompt;
+        document.getElementById('covered-amount').textContent = '0.00';
+        document.getElementById('remaining-amount').textContent = '0.00';
+        checkoutBtn.disabled = true;
+        lastBestCombination = [];
+        return;
+      }
+
+      const { bestSumCents, ticketsCents } = calculateOptimal(totalCartCents);
+      lastBestCombination = ticketsCents;
+
+      if (ticketsCents.length === 0) {
+        optimalDiv.innerHTML = t.noTicketMatch;
+        checkoutBtn.disabled = true;
+      } else {
+        const grouped = {};
+        ticketsCents.forEach(c => {
+          const valStr = (c / 100).toFixed(2);
+          grouped[valStr] = (grouped[valStr] || 0) + 1;
+        });
+
+        optimalDiv.innerHTML = Object.entries(grouped)
+          .map(([val, count]) => `<span class="ticket-pill">${count} × ${val} €</span>`)
+          .join('');
+        checkoutBtn.disabled = false;
+      }
+
+      const remainingCents = totalCartCents - bestSumCents;
+      document.getElementById('covered-amount').textContent = (bestSumCents / 100).toFixed(2);
+      document.getElementById('remaining-amount').textContent = (remainingCents / 100).toFixed(2);
+    }
+
+    function checkout() {
+      if (!confirm(translations[currentLang].confirmCheckout)) return;
+
+      lastBestCombination.forEach(c => {
+        const val = c / 100;
+        const ticket = wallet.find(t => Math.abs(t.val - val) < 0.001);
+        if (ticket) {
+          ticket.qty -= 1;
+        }
+      });
+
+      wallet = wallet.filter(t => t.qty > 0);
+      cart = [];
+      saveData();
+      render();
+    }
+
+    setLang(currentLang);
+  </script>
+</body>
+</html>
